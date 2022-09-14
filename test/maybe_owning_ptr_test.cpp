@@ -102,4 +102,18 @@ TEST_CASE("Self-assignment while owning does not break destruction logic") {
     REQUIRE_FALSE(double_freed);
 }
 
+struct NotifyWhenMemberCalled final {
+    bool called = false;
+
+    void method() { called = true; }
+};
+
+TEST_CASE("Structure dereference operator") {
+    NotifyWhenMemberCalled notifier;
+    mop::maybe_owning_ptr ptr{notifier};
+    REQUIRE_FALSE(notifier.called);
+    ptr->method();
+    REQUIRE(notifier.called);
+}
+
 }  // namespace

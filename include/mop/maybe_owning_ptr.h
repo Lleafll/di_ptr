@@ -33,6 +33,8 @@ public:
         }
     }
 
+    T* operator->() { return ptr_; }
+
 private:
     T* ptr_ = nullptr;
     bool is_owning_ = false;

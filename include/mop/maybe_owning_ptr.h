@@ -24,6 +24,25 @@ public:
         return *this;
     }
 
+    template<std::derived_from<T> T2>
+    maybe_owning_ptr(maybe_owning_ptr<T2>&& other) noexcept {
+        if (is_owning_) {
+            delete ptr_;
+        }
+        is_owning_ = other.is_owning();
+        ptr_ = other.release();
+    }
+
+    template<std::derived_from<T> T2>
+    maybe_owning_ptr& operator=(maybe_owning_ptr<T2>&& other) noexcept {
+        if (is_owning_) {
+            delete ptr_;
+        }
+        std::swap(ptr_, other.ptr_);
+        std::swap(is_owning_, other.is_owning_);
+        return *this;
+    }
+
     maybe_owning_ptr(maybe_owning_ptr const&) = delete;
     maybe_owning_ptr& operator=(maybe_owning_ptr const&) = delete;
 
@@ -33,7 +52,16 @@ public:
         }
     }
 
-    T* operator->() { return ptr_; }
+    T* operator->() const { return ptr_; }
+
+    T& operator*() const { return *ptr_; }
+
+    T* release() {
+        is_owning_ = false;
+        return std::exchange(ptr_, nullptr);
+    }
+
+    [[nodiscard]] bool is_owning() const { return is_owning_; }
 
 private:
     T* ptr_ = nullptr;

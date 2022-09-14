@@ -116,4 +116,62 @@ TEST_CASE("Structure dereference operator") {
     REQUIRE(notifier.called);
 }
 
+TEST_CASE("Dereference operator") {
+    NotifyWhenMemberCalled notifier;
+    mop::maybe_owning_ptr ptr{notifier};
+    REQUIRE_FALSE(notifier.called);
+    (*ptr).method();
+    REQUIRE(notifier.called);
+}
+
+struct Base {
+    virtual ~Base() = default;
+
+    virtual void method() = 0;
+};
+
+struct Derived final : Base {
+    bool& called;
+
+    explicit Derived(bool& called) : called{called} {}
+
+    ~Derived() override = default;
+
+    void method() override { called = true; }
+};
+
+TEST_CASE("Can move assign to base class") {
+    auto called = false;
+    mop::maybe_owning_ptr<Derived> derived{called};
+    mop::maybe_owning_ptr<Base> base = std::move(derived);
+    base->method();
+    REQUIRE(called);
+}
+
+TEST_CASE("Can move construct to base class") {
+    auto called = false;
+    mop::maybe_owning_ptr<Derived> derived{called};
+    mop::maybe_owning_ptr<Base> base{std::move(derived)};
+    base->method();
+    REQUIRE(called);
+}
+
+TEST_CASE("is_owning does correctly return owning state") {
+    REQUIRE(mop::maybe_owning_ptr<int>{1}.is_owning());
+    int on_stack = 123;
+    REQUIRE_FALSE(mop::maybe_owning_ptr{on_stack}.is_owning());
+}
+
+struct NotifyAddress final {
+    explicit NotifyAddress(NotifyAddress*& address) { address = this; }
+};
+
+TEST_CASE("release correctly returns correct pointer and resets owning state") {
+    NotifyAddress* address = nullptr;
+    mop::maybe_owning_ptr<NotifyAddress> ptr{address};
+    REQUIRE(ptr.is_owning());
+    REQUIRE(address == ptr.release());
+    REQUIRE_FALSE(ptr.is_owning());
+}
+
 }  // namespace

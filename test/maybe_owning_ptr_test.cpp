@@ -148,6 +148,15 @@ TEST_CASE("Can move assign to base class") {
     REQUIRE(called);
 }
 
+TEST_CASE("Self-move-assigning to base class does not break logic") {
+    auto called = false;
+    mop::maybe_owning_ptr<Derived> derived{called};
+    mop::maybe_owning_ptr<Base> base{*derived};
+    base = std::move(derived);
+    base->method();
+    REQUIRE(called);
+}
+
 TEST_CASE("Can move construct to base class") {
     auto called = false;
     mop::maybe_owning_ptr<Derived> derived{called};

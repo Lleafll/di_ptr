@@ -13,6 +13,9 @@ public:
 
     explicit(false) maybe_owning_ptr(T& ptr) : ptr_{&ptr} {}
 
+    template<std::derived_from<T> T2>
+    explicit(false) maybe_owning_ptr(T2& ptr) : ptr_{&ptr} {}
+
     maybe_owning_ptr(maybe_owning_ptr&& other) noexcept {
         std::swap(ptr_, other.ptr_);
         std::swap(is_owning_, other.is_owning_);
@@ -38,8 +41,8 @@ public:
         if (is_owning_) {
             delete ptr_;
         }
-        std::swap(ptr_, other.ptr_);
-        std::swap(is_owning_, other.is_owning_);
+        is_owning_ = other.is_owning();
+        ptr_ = other.release();
         return *this;
     }
 

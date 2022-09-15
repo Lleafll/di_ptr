@@ -15,7 +15,7 @@ struct NotifyWhenDestroyed final {
 TEST_CASE("Destroy when owning") {
     auto destroyed = false;
     {
-        mop::maybe_owning_ptr<NotifyWhenDestroyed> const ptr{destroyed};
+        auto const ptr = mop::make_owning<NotifyWhenDestroyed>(destroyed);
         REQUIRE_FALSE(destroyed);
     }
     REQUIRE(destroyed);
@@ -54,8 +54,8 @@ TEST_CASE("Move assignment does not double free when owning") {
     auto destroyed = false;
     auto double_freed = false;
     {
-        mop::maybe_owning_ptr<NotifyWhenDestroyedAndDoubleFreed> ptr{
-                destroyed, double_freed};
+        auto ptr = mop::make_owning<NotifyWhenDestroyedAndDoubleFreed>(
+                destroyed, double_freed);
         REQUIRE_FALSE(destroyed);
         {
             auto ptr2 = std::move(ptr);
@@ -72,8 +72,8 @@ TEST_CASE("Move construction does not double free when owning") {
     auto destroyed = false;
     auto double_freed = false;
     {
-        mop::maybe_owning_ptr<NotifyWhenDestroyedAndDoubleFreed> ptr{
-                destroyed, double_freed};
+        auto ptr = mop::make_owning<NotifyWhenDestroyedAndDoubleFreed>(
+                destroyed, double_freed);
         REQUIRE_FALSE(destroyed);
         {
             mop::maybe_owning_ptr<NotifyWhenDestroyedAndDoubleFreed> ptr2{
@@ -91,8 +91,8 @@ TEST_CASE("Self-assignment while owning does not break destruction logic") {
     auto destroyed = false;
     auto double_freed = false;
     {
-        mop::maybe_owning_ptr<NotifyWhenDestroyedAndDoubleFreed> ptr{
-                destroyed, double_freed};
+        auto ptr = mop::make_owning<NotifyWhenDestroyedAndDoubleFreed>(
+                destroyed, double_freed);
         REQUIRE_FALSE(destroyed);
         ptr = std::move(ptr);
         REQUIRE_FALSE(destroyed);
@@ -142,7 +142,7 @@ struct Derived final : Base {
 
 TEST_CASE("Can move assign to base class") {
     auto called = false;
-    mop::maybe_owning_ptr<Derived> derived{called};
+    auto derived = mop::make_owning<Derived>(called);
     mop::maybe_owning_ptr<Base> base = std::move(derived);
     base->method();
     REQUIRE(called);
@@ -150,7 +150,7 @@ TEST_CASE("Can move assign to base class") {
 
 TEST_CASE("Self-move-assigning to base class does not break logic") {
     auto called = false;
-    mop::maybe_owning_ptr<Derived> derived{called};
+    auto derived = mop::make_owning<Derived>(called);
     mop::maybe_owning_ptr<Base> base{*derived};
     base = std::move(derived);
     base->method();
@@ -159,14 +159,14 @@ TEST_CASE("Self-move-assigning to base class does not break logic") {
 
 TEST_CASE("Can move construct to base class") {
     auto called = false;
-    mop::maybe_owning_ptr<Derived> derived{called};
+    auto derived = mop::make_owning<Derived>(called);
     mop::maybe_owning_ptr<Base> base{std::move(derived)};
     base->method();
     REQUIRE(called);
 }
 
 TEST_CASE("is_owning does correctly return owning state") {
-    REQUIRE(mop::maybe_owning_ptr<int>{1}.is_owning());
+    REQUIRE(mop::make_owning<int>(1).is_owning());
     int on_stack = 123;
     REQUIRE_FALSE(mop::maybe_owning_ptr{on_stack}.is_owning());
 }
@@ -177,7 +177,7 @@ struct NotifyAddress final {
 
 TEST_CASE("release correctly returns correct pointer and resets owning state") {
     NotifyAddress* address = nullptr;
-    mop::maybe_owning_ptr<NotifyAddress> ptr{address};
+    auto ptr = mop::make_owning<NotifyAddress>(address);
     REQUIRE(ptr.is_owning());
     REQUIRE(address == ptr.release());
     REQUIRE_FALSE(ptr.is_owning());

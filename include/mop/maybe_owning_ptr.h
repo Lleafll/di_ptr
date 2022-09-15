@@ -7,14 +7,13 @@ namespace mop {
 template<class T>
 class maybe_owning_ptr final {
 public:
-    template<class... Params>
-    explicit maybe_owning_ptr(Params&&... params)
-        : ptr_{new T{std::forward<Params>(params)...}}, is_owning_{true} {}
-
     explicit(false) maybe_owning_ptr(T& ptr) : ptr_{&ptr} {}
 
     template<std::derived_from<T> T2>
     explicit(false) maybe_owning_ptr(T2& ptr) : ptr_{&ptr} {}
+
+    explicit maybe_owning_ptr(T* const ptr, bool const is_owning)
+        : ptr_{ptr}, is_owning_{is_owning} {}
 
     maybe_owning_ptr(maybe_owning_ptr&& other) noexcept {
         std::swap(ptr_, other.ptr_);
@@ -70,5 +69,10 @@ private:
     T* ptr_ = nullptr;
     bool is_owning_ = false;
 };
+
+template<class T, class... Params>
+maybe_owning_ptr<T> make_owning(Params&&... params) {
+    return maybe_owning_ptr(new T{std::forward<Params>(params)...}, true);
+}
 
 }  // namespace mop

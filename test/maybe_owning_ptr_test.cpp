@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
 
-#include "mop/maybe_owning_ptr.h"
+#include <mop/maybe_owning_ptr.h>
 #include <catch2/catch.hpp>
 #include <mop/maybe_owning_ptr.h>
 

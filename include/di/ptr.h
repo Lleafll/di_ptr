@@ -25,9 +25,6 @@ public:
 
     template<std::derived_from<T> T2>
     ptr(ptr<T2>&& other) noexcept {
-        if (is_owning_) {
-            delete ptr_;
-        }
         is_owning_ = other.is_owning();
         ptr_ = other.release();
     }

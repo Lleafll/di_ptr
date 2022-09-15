@@ -75,8 +75,7 @@ TEST_CASE("Move construction does not double free when owning") {
                 destroyed, double_freed);
         REQUIRE_FALSE(destroyed);
         {
-            di::ptr<NotifyWhenDestroyedAndDoubleFreed> ptr2{
-                    std::move(ptr)};
+            di::ptr<NotifyWhenDestroyedAndDoubleFreed> ptr2{std::move(ptr)};
             REQUIRE_FALSE(destroyed);
         }
         REQUIRE(destroyed);
@@ -180,6 +179,11 @@ TEST_CASE("release correctly returns correct pointer and resets owning state") {
     REQUIRE(ptr.is_owning());
     REQUIRE(address == ptr.release());
     REQUIRE_FALSE(ptr.is_owning());
+}
+
+TEST_CASE("Compiles with forward declaration") {
+    struct ForwardDeclared;
+    REQUIRE(sizeof(di::ptr<ForwardDeclared>) == 16);
 }
 
 }  // namespace

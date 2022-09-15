@@ -9,9 +9,6 @@ class maybe_owning_ptr final {
 public:
     explicit(false) maybe_owning_ptr(T& ptr) : ptr_{&ptr} {}
 
-    template<std::derived_from<T> T2>
-    explicit(false) maybe_owning_ptr(T2& ptr) : ptr_{&ptr} {}
-
     explicit maybe_owning_ptr(T* const ptr, bool const is_owning)
         : ptr_{ptr}, is_owning_{is_owning} {}
 

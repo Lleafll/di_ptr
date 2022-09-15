@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.23)
 
-project(maybe_owning_ptr CXX)
+project(di_ptr CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 

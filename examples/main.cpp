@@ -1,6 +1,6 @@
+#include <di/ptr.h>
 #include <iostream>
 #include <memory>
-#include <mop/maybe_owning_ptr.h>
 #include <string_view>
 
 namespace {
@@ -60,7 +60,7 @@ void unique_di() {
 }
 
 struct MaybeOwningDI final {
-    mop::maybe_owning_ptr<Logger> logger;
+    di::ptr<Logger> logger;
 };
 
 void maybe_owning_di() {
@@ -68,7 +68,7 @@ void maybe_owning_di() {
     StreamLogger logger;
     MaybeOwningDI non_owning{logger};
     // Exclusive ownership
-    MaybeOwningDI owning{mop::make_owning<StreamLogger>()};
+    MaybeOwningDI owning{di::make_owning<StreamLogger>()};
 }
 
 }  // namespace

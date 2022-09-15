@@ -2,29 +2,29 @@
 
 #include <utility>
 
-namespace mop {
+namespace di {
 
 template<class T>
-class maybe_owning_ptr final {
+class ptr final {
 public:
-    explicit(false) maybe_owning_ptr(T& ptr) : ptr_{&ptr} {}
+    explicit(false) ptr(T& ptr) : ptr_{&ptr} {}
 
-    explicit maybe_owning_ptr(T* const ptr, bool const is_owning)
+    explicit ptr(T* const ptr, bool const is_owning)
         : ptr_{ptr}, is_owning_{is_owning} {}
 
-    maybe_owning_ptr(maybe_owning_ptr&& other) noexcept {
+    ptr(ptr&& other) noexcept {
         std::swap(ptr_, other.ptr_);
         std::swap(is_owning_, other.is_owning_);
     }
 
-    maybe_owning_ptr& operator=(maybe_owning_ptr&& other) noexcept {
+    ptr& operator=(ptr&& other) noexcept {
         std::swap(ptr_, other.ptr_);
         std::swap(is_owning_, other.is_owning_);
         return *this;
     }
 
     template<std::derived_from<T> T2>
-    maybe_owning_ptr(maybe_owning_ptr<T2>&& other) noexcept {
+    ptr(ptr<T2>&& other) noexcept {
         if (is_owning_) {
             delete ptr_;
         }
@@ -33,7 +33,7 @@ public:
     }
 
     template<std::derived_from<T> T2>
-    maybe_owning_ptr& operator=(maybe_owning_ptr<T2>&& other) noexcept {
+    ptr& operator=(ptr<T2>&& other) noexcept {
         if (is_owning_) {
             delete ptr_;
         }
@@ -42,10 +42,10 @@ public:
         return *this;
     }
 
-    maybe_owning_ptr(maybe_owning_ptr const&) = delete;
-    maybe_owning_ptr& operator=(maybe_owning_ptr const&) = delete;
+    ptr(ptr const&) = delete;
+    ptr& operator=(ptr const&) = delete;
 
-    ~maybe_owning_ptr() {
+    ~ptr() {
         if (is_owning_) {
             delete ptr_;
         }
@@ -68,8 +68,8 @@ private:
 };
 
 template<class T, class... Params>
-maybe_owning_ptr<T> make_owning(Params&&... params) {
-    return maybe_owning_ptr(new T{std::forward<Params>(params)...}, true);
+ptr<T> make_owning(Params&&... params) {
+    return ptr(new T{std::forward<Params>(params)...}, true);
 }
 
-}  // namespace mop
+}  // namespace di

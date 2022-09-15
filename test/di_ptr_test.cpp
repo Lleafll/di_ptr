@@ -1,5 +1,6 @@
 #define CATCH_CONFIG_MAIN
 
+#include "forwarddeclared.h"
 #include <catch2/catch.hpp>
 #include <di/ptr.h>
 
@@ -182,8 +183,8 @@ TEST_CASE("release correctly returns correct pointer and resets owning state") {
 }
 
 TEST_CASE("Compiles with forward declaration") {
-    struct ForwardDeclared;
-    REQUIRE(sizeof(di::ptr<ForwardDeclared>) == 16);
+    ditest::ForwardDeclaredContainer on_stack;
+    REQUIRE(sizeof(on_stack) == 16);
 }
 
 }  // namespace

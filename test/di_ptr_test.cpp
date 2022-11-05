@@ -1,7 +1,5 @@
-#define CATCH_CONFIG_MAIN
-
 #include "forwarddeclared.h"
-#include <catch2/catch.hpp>
+#include <catch.hpp>
 #include <di/ptr.h>
 
 namespace {

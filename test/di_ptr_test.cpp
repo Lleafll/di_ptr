@@ -88,7 +88,14 @@ TEST_CASE("Self-assignment while owning does not break destruction logic") {
     {
         auto ptr = di::make_owning<CountDestructions>(number_of_destructions);
         REQUIRE(number_of_destructions == 0);
+#ifdef __clang__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
+#endif
         ptr = std::move(ptr);
+#ifdef __clang__
+#pragma GCC diagnostic pop
+#endif
         REQUIRE(number_of_destructions == 0);
     }
     REQUIRE(number_of_destructions == 1);

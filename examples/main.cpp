@@ -26,7 +26,7 @@ struct ReferenceDI final {
 void reference_di() {
     // Only non-ownership possible
     StreamLogger logger;
-    ReferenceDI di{logger};
+    [[maybe_unused]] ReferenceDI di{logger};
 }
 
 struct SharedDI final {
@@ -51,7 +51,7 @@ struct UniqueDI final {
 void unique_di() {
     // Observing (e.g. in tests), leaves us with moved-from container
     auto container = std::make_unique<StreamLogger>();
-    auto* const observing = container.get();
+    [[maybe_unused]] auto* const observing = container.get();
     UniqueDI observed_unique_di{std::move(container)};
     // Exclusive ownership
     UniqueDI unique_di{std::make_unique<StreamLogger>()};

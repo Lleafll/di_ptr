@@ -7,10 +7,11 @@ namespace di {
 template<class T>
 class ptr final {
 public:
+    // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
     explicit(false) ptr(T& ptr) : ptr_{&ptr} {}
 
     explicit ptr(T* const ptr, bool const is_owning)
-        : ptr_{ptr}, is_owning_{is_owning} {}
+        : is_owning_{is_owning}, ptr_{ptr} {}
 
     ptr(ptr&& other) noexcept {
         std::swap(ptr_, other.ptr_);
@@ -24,10 +25,9 @@ public:
     }
 
     template<std::derived_from<T> T2>
-    ptr(ptr<T2>&& other) noexcept {
-        is_owning_ = other.is_owning();
-        ptr_ = other.release();
-    }
+    // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
+    explicit(false) ptr(ptr<T2>&& other) noexcept
+        : is_owning_{other.is_owning()}, ptr_{other.release()} {}
 
     template<std::derived_from<T> T2>
     ptr& operator=(ptr<T2>&& other) noexcept {
@@ -60,8 +60,8 @@ public:
     [[nodiscard]] bool is_owning() const { return is_owning_; }
 
 private:
-    T* ptr_ = nullptr;
     bool is_owning_ = false;
+    T* ptr_ = nullptr;
 };
 
 template<class T, class... Params>

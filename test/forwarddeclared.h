@@ -14,6 +14,12 @@ struct ForwardDeclaredContainer final {
     ForwardDeclaredContainer();
 
     ~ForwardDeclaredContainer();
+    ForwardDeclaredContainer(ForwardDeclaredContainer const&) = delete;
+    ForwardDeclaredContainer(ForwardDeclaredContainer&&) noexcept = default;
+    ForwardDeclaredContainer&
+    operator=(ForwardDeclaredContainer const&) = delete;
+    ForwardDeclaredContainer&
+    operator=(ForwardDeclaredContainer&&) noexcept = default;
 };
 
 }  // namespace ditest

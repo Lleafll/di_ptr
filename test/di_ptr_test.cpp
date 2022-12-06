@@ -7,7 +7,13 @@ namespace {
 struct NotifyWhenDestroyed final {
     bool& destroyed;
 
+    explicit NotifyWhenDestroyed(bool& destroyed) : destroyed{destroyed} {}
+
     ~NotifyWhenDestroyed() { destroyed = true; }
+    NotifyWhenDestroyed(NotifyWhenDestroyed const&) = delete;
+    NotifyWhenDestroyed(NotifyWhenDestroyed&&) noexcept = delete;
+    NotifyWhenDestroyed& operator=(NotifyWhenDestroyed const&) = delete;
+    NotifyWhenDestroyed& operator=(NotifyWhenDestroyed&&) noexcept = delete;
 };
 
 TEST_CASE("Destroy when owning") {
@@ -36,67 +42,56 @@ TEST_CASE("Copy construction and assignment are disabled even for trivial "
     REQUIRE_FALSE(std::is_copy_assignable_v<Type>);
 }
 
-struct NotifyWhenDestroyedAndDoubleFreed final {
-    bool& destroyed;
-    bool& double_freed;
+struct CountDestructions final {
+    int& number_of_destructions;
 
-    ~NotifyWhenDestroyedAndDoubleFreed() {
-        if (destroyed) {
-            double_freed = true;
-        }
-        destroyed = true;
-    }
+    explicit CountDestructions(int& number_of_destructions)
+        : number_of_destructions{number_of_destructions} {}
+
+    ~CountDestructions() { ++number_of_destructions; }
+    CountDestructions(CountDestructions const&) = delete;
+    CountDestructions(CountDestructions&&) noexcept = delete;
+    CountDestructions& operator=(CountDestructions const&) = delete;
+    CountDestructions& operator=(CountDestructions&&) noexcept = delete;
 };
 
 TEST_CASE("Move assignment does not double free when owning") {
-    auto destroyed = false;
-    auto double_freed = false;
+    int number_of_destructions = 0;
     {
-        auto ptr = di::make_owning<NotifyWhenDestroyedAndDoubleFreed>(
-                destroyed, double_freed);
-        REQUIRE_FALSE(destroyed);
+        auto ptr = di::make_owning<CountDestructions>(number_of_destructions);
+        REQUIRE(number_of_destructions == 0);
         {
-            auto ptr2 = std::move(ptr);
-            REQUIRE_FALSE(destroyed);
+            [[maybe_unused]] auto ptr2 = std::move(ptr);
+            REQUIRE(number_of_destructions == 0);
         }
-        REQUIRE(destroyed);
-        REQUIRE_FALSE(double_freed);
+        REQUIRE(number_of_destructions == 1);
     }
-    REQUIRE(destroyed);
-    REQUIRE_FALSE(double_freed);
+    REQUIRE(number_of_destructions == 1);
 }
 
 TEST_CASE("Move construction does not double free when owning") {
-    auto destroyed = false;
-    auto double_freed = false;
+    int number_of_destructions = 0;
     {
-        auto ptr = di::make_owning<NotifyWhenDestroyedAndDoubleFreed>(
-                destroyed, double_freed);
-        REQUIRE_FALSE(destroyed);
+        auto ptr = di::make_owning<CountDestructions>(number_of_destructions);
+        REQUIRE(number_of_destructions == 0);
         {
-            di::ptr<NotifyWhenDestroyedAndDoubleFreed> ptr2{std::move(ptr)};
-            REQUIRE_FALSE(destroyed);
+            di::ptr<CountDestructions> const ptr2{std::move(ptr)};
+            REQUIRE(number_of_destructions == 0);
         }
-        REQUIRE(destroyed);
-        REQUIRE_FALSE(double_freed);
+        REQUIRE(number_of_destructions == 1);
     }
-    REQUIRE(destroyed);
-    REQUIRE_FALSE(double_freed);
+    REQUIRE(number_of_destructions == 1);
 }
 
 TEST_CASE("Self-assignment while owning does not break destruction logic") {
-    auto destroyed = false;
-    auto double_freed = false;
+    int number_of_destructions = 0;
     {
-        auto ptr = di::make_owning<NotifyWhenDestroyedAndDoubleFreed>(
-                destroyed, double_freed);
-        REQUIRE_FALSE(destroyed);
+        auto ptr = di::make_owning<CountDestructions>(number_of_destructions);
+        REQUIRE(number_of_destructions == 0);
         ptr = std::move(ptr);
-        REQUIRE_FALSE(destroyed);
-        REQUIRE_FALSE(double_freed);
+        REQUIRE(number_of_destructions == 0);
     }
-    REQUIRE(destroyed);
-    REQUIRE_FALSE(double_freed);
+    REQUIRE(number_of_destructions == 1);
 }
 
 struct NotifyWhenMemberCalled final {
@@ -164,7 +159,7 @@ TEST_CASE("Can move construct to base class") {
 
 TEST_CASE("is_owning does correctly return owning state") {
     REQUIRE(di::make_owning<int>(1).is_owning());
-    int on_stack = 123;
+    int on_stack = 1;
     REQUIRE_FALSE(di::ptr{on_stack}.is_owning());
 }
 
@@ -181,7 +176,7 @@ TEST_CASE("release correctly returns correct pointer and resets owning state") {
 }
 
 TEST_CASE("Compiles with forward declaration") {
-    ditest::ForwardDeclaredContainer on_stack;
+    ditest::ForwardDeclaredContainer const on_stack;
     REQUIRE(sizeof(on_stack) == 16);
 }
 

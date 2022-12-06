@@ -26,7 +26,7 @@ struct ReferenceDI final {
 void reference_di() {
     // Only non-ownership possible
     StreamLogger logger;
-    [[maybe_unused]] ReferenceDI di{logger};
+    [[maybe_unused]] ReferenceDI const di{logger};
 }
 
 struct SharedDI final {
@@ -36,9 +36,9 @@ struct SharedDI final {
 void shared_di() {
     // Shared ownership (e.g. in tests)
     auto logger = std::make_shared<StreamLogger>();
-    SharedDI shared_di{logger};
+    SharedDI const shared_di{logger};
     // Effectively exclusive ownership
-    SharedDI unshared_di{std::make_shared<StreamLogger>()};
+    SharedDI const unshared_di{std::make_shared<StreamLogger>()};
     // Non-ownership not possible
     // Client dictates how service is allocated, but does not prevent copy
     // construction and assignment of client
@@ -52,9 +52,9 @@ void unique_di() {
     // Observing (e.g. in tests), leaves us with moved-from container
     auto container = std::make_unique<StreamLogger>();
     [[maybe_unused]] auto* const observing = container.get();
-    UniqueDI observed_unique_di{std::move(container)};
+    UniqueDI const observed_unique_di{std::move(container)};
     // Exclusive ownership
-    UniqueDI unique_di{std::make_unique<StreamLogger>()};
+    UniqueDI const unique_di{std::make_unique<StreamLogger>()};
     // Non-ownership not possible
     // Client dictates how service is allocated
 }
@@ -66,9 +66,9 @@ struct MaybeOwningDI final {
 void maybe_owning_di() {
     // Non-ownership (e.g. tests), also avoids heap allocation
     StreamLogger logger;
-    MaybeOwningDI non_owning{logger};
+    MaybeOwningDI const non_owning{logger};
     // Exclusive ownership
-    MaybeOwningDI owning{di::make_owning<StreamLogger>()};
+    MaybeOwningDI const owning{di::make_owning<StreamLogger>()};
 }
 
 }  // namespace
